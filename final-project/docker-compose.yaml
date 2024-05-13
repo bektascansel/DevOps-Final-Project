@@ -1,0 +1,95 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis_Container
+    ports:
+      - "6379:6379"
+    networks:
+      - my_network
+
+  user-login-register-app:
+    build: ./User-login-register
+    container_name: userLoginRegister_Container
+    volumes:
+      - ./User-login-register:/app
+    environment:
+      - name=values
+    ports:
+      - "4050:4050"
+    networks:
+      - my_network
+
+  admin-app:
+    build: ./Admin
+    container_name: admin_Container
+    volumes:
+      - ./Admin:/app
+    environment:
+      - name=values
+    ports:
+      - "4060:4060"
+    networks:
+      - my_network
+  
+
+  book-store-app:
+    build: ./Book-store
+    container_name: bookStore_Container
+    volumes:
+      - ./Book-store:/app
+    environment:
+      - name=values
+    ports:
+      - "4070:4070"
+    networks:
+      - my_network
+  
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq_Container'
+    ports:
+        - 5672:5672
+        - 5673:5672
+        - 15672:15672
+    volumes:
+        - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+        - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+        - my_network
+
+  db:
+    image: mysql:5.7
+    container_name: db_Container
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'db'
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: 'user'
+      # You can use whatever password you like
+      MYSQL_PASSWORD: 'password'
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      # <Port exposed> : <MySQL Port running inside container>
+      - '3308:3308'
+    expose:
+      # Opens port 3306 on the container
+      - '3308'
+      # Where our data will be persisted
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - my_network
+  
+
+
+
+volumes:
+  db_data:
+
+networks:
+  my_network:
+    driver: bridge
